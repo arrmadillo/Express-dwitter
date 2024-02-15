@@ -75,7 +75,7 @@ router.put('/:id', (req, res, next) => {
     tweet.text = text;
     res.status(200).json(tweet);
   } else {
-    res.status(404);
+    res.status(404).json({ message: `Tweet id(${id}) not found` });
   }
 
   res.sendStatus(204).json({ message: `Tweet id(${id}) not found` });
