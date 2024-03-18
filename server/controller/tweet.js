@@ -27,17 +27,35 @@ export async function createTweet(req, res, next) {
 
 export async function updateTweet(req, res) {
   const id = req.params.id;
+  const userId = req.userId;
+  console.log('유저아이디: ', userId);
+
+  const tweet = await tweetRepository.getById(id);
+  console.log('트윗아이디: ', tweet.userId);
   const text = req.body.text;
-  const tweet = await tweetRepository.update(id, text);
-  if (tweet) {
-    res.status(200).json(tweet);
-  } else {
-    res.status(404).json({ message: `Tweet id(${id}) not found` });
+  if (!tweet) {
+    res.sendStatus(404);
   }
+  // 본인 작성유무
+  if (tweet.userId !== userId) {
+    res.sendStatus(403); // 403은 로그인된 사용자지만 권한이 없을떄
+  }
+
+  const updated = await tweetRepository.update(id, text);
+  res.status(200).json(updated);
 }
 
 export async function deleteTweet(req, res) {
   const id = req.params.id;
+  const userId = req.userId;
+  const tweet = await tweetRepository.getById(id);
+  if (!tweet) {
+    res.sendStatus(404);
+  }
+  // 본인 작성유무
+  if (tweet.userId !== userId) {
+    res.sendStatus(403); // 403은 로그인된 사용자지만 권한이 없을떄
+  }
   await tweetRepository.remove(id);
   res.sendStatus(204);
 }
