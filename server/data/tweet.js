@@ -1,47 +1,55 @@
+import * as userRepository from './auth.js';
+
 let tweets = [
-  //  API 테스트를 위한 임시 데이터
   {
     id: '1',
-    text: '첫번째 트윗',
-    createdAt: Date.now().toString(),
-    name: 'Bob',
-    username: 'bob',
-    url: 'https://m.media-amazon.com/images/M/MV5BNzg0MWEyZjItOTZlMi00YmRjLWEyYzctODIwMDU0OThiMzNkXkEyXkFqcGdeQXVyNjUxMjc1OTM@._V1_.jpg',
+    text: '드림코더분들 화이팅!',
+    createdAt: new Date().toString(),
+    userId: '1',
   },
   {
     id: '2',
-    text: '두번째 트윗',
-    createdAt: Date.now().toString(),
-    name: 'Anna',
-    username: 'anna',
-    url: 'https://static.wikia.nocookie.net/dis/images/7/7c/B5da8e4c0046a83b81dbd945719f6b354edd764b.jpeg/revision/latest?cb=20160623191458',
+    text: '안뇽!',
+    createdAt: new Date().toString(),
+    userId: '1',
   },
 ];
 
 export async function getAll() {
-  return tweets;
+  return Promise.all(
+    tweets.map(async (tweet) => {
+      const { username, name, url } = await userRepository.findById(
+        tweet.userId
+      );
+      return { ...tweet, username, name, url };
+    })
+  );
 }
 
 export async function getAllByUsername(username) {
-  return tweets.filter((tweet) => tweet.username === username);
+  return getAll().then((tweets) =>
+    tweets.filter((tweet) => tweet.username === username)
+  );
 }
 
 export async function getById(id) {
-  return tweets.find((tweet) => tweet.id === id);
+  const found = tweets.find((tweet) => tweet.id === id);
+  if (!found) {
+    return null;
+  }
+  const { username, name, url } = await userRepository.findById(found.userId);
+  return { ...found, username, name, url };
 }
 
-export async function create(text, name, username) {
-  // 새로운 트윗 생성
-  const newTweet = {
-    id: (tweets.length + 1).toString(),
+export async function create(text, userId) {
+  const tweet = {
+    id: new Date().toString(),
     text,
-    createdAt: Date.now().toString(),
-    name,
-    username,
-    url: 'https://example.com',
+    createdAt: new Date(),
+    userId,
   };
-  tweets = [newTweet, ...tweets];
-  return newTweet;
+  tweets = [tweet, ...tweets];
+  return getById(tweet.id);
 }
 
 export async function update(id, text) {
@@ -49,10 +57,9 @@ export async function update(id, text) {
   if (tweet) {
     tweet.text = text;
   }
-  // 트윗이 없다면 undefined
-  return tweet;
+  return getById(tweet.id);
 }
 
 export async function remove(id) {
-  tweets = tweets.filter((tweet) => tweet.id !== id); // 삭제할 id만 삭제후 재할당
+  tweets = tweets.filter((tweet) => tweet.id !== id);
 }

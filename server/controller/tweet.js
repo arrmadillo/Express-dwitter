@@ -19,19 +19,10 @@ export async function getTweet(req, res) {
   }
 }
 
-export async function createTweet(req, res) {
-  // 클라이언트로부터 전달된 데이터
-  const { text, name, username } = req.body;
-
-  // 데이터 유효성 검사
-  if (!text || !name || !username) {
-    return res.status(400).json({ error: '제목과 내용을 모두 입력해주세요.' });
-  }
-
-  const newTweet = await tweetRepository.create(text, name, username);
-
-  // 성공적인 응답
-  return res.status(201).json(newTweet);
+export async function createTweet(req, res, next) {
+  const { text } = req.body;
+  const tweet = await tweetRepository.create(text, req.userId);
+  res.status(201).json(tweet);
 }
 
 export async function updateTweet(req, res) {
